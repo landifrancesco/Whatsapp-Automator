@@ -28,7 +28,6 @@ It must be a **.csv** file with this syntax:
 > NAME1, NUMBER1 <br>
 > NAME2, NUMBER2 <br>
 > etc.
-
 If you don't have any names, please **leave the first column empty**.
 
 ### 3) Message file
@@ -52,7 +51,7 @@ python3 main.py
 
 If you like this script, please donate.
 
-Send BTC, ETH, BNB, LTC, MATIC to:
+Send BTC, BCH, ETH, CRO, CELO, BNB, LTC, MATIC to:
 **landifrancesco.wallet**
 
 #### My profile on Unstoppable Domains:
@@ -61,5 +60,3 @@ https://ud.me/landifrancesco.wallet
 ## Disclaimer
 
 This code is in no way affiliated with, authorized, maintained, sponsored or endorsed by WhatsApp or any of its affiliates or subsidiaries. This is an independent and unofficial software. Use at your own risk. Commercial use of this code/repo is strictly prohibited.
-
-

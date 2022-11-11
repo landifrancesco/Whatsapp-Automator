@@ -13,7 +13,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
-timeout = 30
+timeout = 120
+
 
 class Bot:
     """
@@ -48,7 +49,7 @@ class Bot:
             WebDriverWait(self.driver, timeout).until(
                 EC.element_to_be_clickable((By.XPATH, "//div[@class='ldL67 _2i3T7']")))
         except TimeoutException:
-            self.wait()
+            self.driver.close()
         self.send_msg()
 
     def send_msg(self):
