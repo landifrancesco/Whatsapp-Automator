@@ -15,6 +15,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 timeout = 30
 
+
 class Bot:
     """
     Bot class that install Chrome driver automatically
@@ -23,7 +24,7 @@ class Bot:
     def __init__(self):
         options = Options()
         # options.add_experimental_option("excludeSwitches", ["enable-logging"])
-        # options.add_argument("--profile-directory=Default")
+        options.add_argument("--profile-directory=Default")
         # options.add_argument("--user-data-dir=/var/tmp/chrome_user_data")
 
         self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
@@ -68,12 +69,14 @@ class Bot:
                         message = self._message.replace("%NAME%", "")
 
                     try:
-                        url = 'https://web.whatsapp.com/send?phone=' + number.strip() + '&text=' + message
+                        url = 'https://web.whatsapp.com/send?phone=+39' + number.strip() + '&text=' + message
                     except FileNotFoundError:
                         print(Fore.RED, "Error reading data, check numbers and message files.", Style.RESET_ALL)
 
                     self.driver.get(url)
                     try:
+                        t = time.localtime()
+                        self._start = str(time.strftime("%d-%m-%Y_%H%M%S", t))
                         text_btn = WebDriverWait(self.driver, timeout).until(
                             EC.element_to_be_clickable((By.XPATH, "//p[@class='selectable-text copyable-text']")))
                         if self.options[1]:
@@ -84,9 +87,6 @@ class Bot:
                         else:
                             text_btn.send_keys(Keys.RETURN)
                         sleep(3)
-                        if self._start is None:
-                            t = time.localtime()
-                            self._start = str(time.strftime("%d-%m-%Y_%H%M%S", t))
                     except Exception as e:
                         print(e)
                         error = True
