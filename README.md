@@ -8,7 +8,7 @@ You can:
 
 The script saves a log file of the correctly and not correctly sent messages. The name syntax is DD-MM-YYYY_HMS.
 
-**TESTED ONLY ON LINUX**
+**TESTED ON WINDOWS and LINUX**
 
 ## How-to
 
@@ -21,6 +21,12 @@ The numbers' and message files **must** be in the _data directory_
 pip3 install -r requirements.txt
 ```
 
+YOU MUST SET **PREFIX** and **TEST_NUMBER** variables.
+
+Example:
+> PREFIX = "+39" # The national prefix
+> TEST_NUMBER = "3333333333" # Test number without national prefix
+
 ### 2) Phone numbers file
 
 It must be a **.csv** file with this syntax:
@@ -28,7 +34,8 @@ It must be a **.csv** file with this syntax:
 > NAME1, NUMBER1 <br>
 > NAME2, NUMBER2 <br>
 > etc.
-If you don't have any names, please **leave the first column empty**.
+
+N.B. If you don't have any names, please **leave the first column empty**.
 
 ### 3) Message file
 
@@ -51,7 +58,7 @@ python3 main.py
 
 If you like this script, please donate.
 
-Send BTC, ETH, BNB, LTC, MATIC to:
+Send MATIC, BEP20, ERC20, BTC, BCH, CRO, LTC, DASH, CELO, ZEC, XRP to:
 **landifrancesco.wallet**
 
 #### My profile on Unstoppable Domains:

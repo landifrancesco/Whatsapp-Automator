@@ -23,9 +23,10 @@ class Bot:
 
     def __init__(self):
         options = Options()
-        # options.add_experimental_option("excludeSwitches", ["enable-logging"])
-        options.add_argument("--profile-directory=Default")
-        # options.add_argument("--user-data-dir=/var/tmp/chrome_user_data")
+
+        options.add_argument("start-maximized")
+
+        options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
         self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
         self._message = None
@@ -45,9 +46,12 @@ class Bot:
 
     def wait(self):
         print("Please login in Whatsapp Web via QR Code")
+        sleep(5)
+        html = self.driver.execute_script("return document.getElementsByTagName('html')[0].innerHTML")
+        print(html)
         try:
             WebDriverWait(self.driver, timeout).until(
-                EC.element_to_be_clickable((By.XPATH, "//div[@class='ldL67 _2i3T7']")))
+                EC.element_to_be_clickable((By.XPATH, "//div[@class='_2cNrC']")))
         except TimeoutException:
             self.wait()
         self.send_msg()

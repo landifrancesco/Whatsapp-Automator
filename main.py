@@ -2,7 +2,9 @@ from driver import Bot, Fore, Style
 import sys
 import os
 
-TEST_NUMBER = ""
+PREFIX = "" # The national prefix
+TEST_NUMBER = "" # Test number without national prefix
+
 
 
 class Menu:
@@ -16,14 +18,17 @@ class Menu:
         }
 
     def display(self):
-        print("""
-              Whatsapp Automator: 
-
-              1. Send test message
-              2. Send messages
-              3. Send messages with media attached
-              4. Quit
-              """)
+        try:
+            assert PREFIX != ""
+            print("WHATSAPP AUTOMATOR\n",Fore.YELLOW, "You have chosen this number prefix: ", PREFIX, Style.RESET_ALL)
+            print("""
+                  1. Send test message
+                  2. Send messages
+                  3. Send messages with media attached
+                  4. Quit
+                  """)
+        except AssertionError:
+            print(Fore.RED, "Please fill the PREFIX variable in main.py", Style.RESET_ALL)
 
     def settings(self, test_mode=False):
         include_names = None
@@ -117,7 +122,7 @@ class Menu:
 
     def quit(self):
         print("If you like this script, please donate.")
-        print("Send BTC, ETH, BNB, LTC, MATIC to:")
+        print("Send MATIC, BEP20, ERC20, BTC, BCH, CRO, LTC, DASH, CELO, ZEC, XRP to:")
         print(Fore.GREEN, "landifrancesco.wallet")
         sys.exit(0)
 
