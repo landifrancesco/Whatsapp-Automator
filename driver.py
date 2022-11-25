@@ -46,9 +46,7 @@ class Bot:
 
     def wait(self):
         print("Please login in Whatsapp Web via QR Code")
-        sleep(5)
-        html = self.driver.execute_script("return document.getElementsByTagName('html')[0].innerHTML")
-        print(html)
+        sleep(3)
         try:
             WebDriverWait(self.driver, timeout).until(
                 EC.element_to_be_clickable((By.XPATH, "//div[@class='_2cNrC']")))
