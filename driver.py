@@ -46,12 +46,13 @@ class Bot:
 
     def wait(self):
         print("Please login in Whatsapp Web via QR Code")
-        sleep(3)
         try:
             WebDriverWait(self.driver, timeout).until(
                 EC.element_to_be_clickable((By.XPATH, "//div[@class='_2cNrC']")))
         except TimeoutException:
-            self.wait()
+            print("Please login in Whatsapp Web via QR Code")
+            WebDriverWait(self.driver, timeout).until(
+                EC.element_to_be_clickable((By.XPATH, "//div[@class='_2cNrC']")))
         self.send_msg()
 
     def send_msg(self):
