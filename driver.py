@@ -58,7 +58,6 @@ class Bot:
         self.send_msg()
 
     def send_msg(self):
-        print("TEST: ",str(self._start))
         if os.path.isfile(self.csv_numbers):
             with open(self.csv_numbers, mode="r") as file:
                 csv_file = csv.reader(file)
