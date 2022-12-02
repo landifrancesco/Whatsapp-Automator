@@ -53,9 +53,12 @@ class Bot:
             print("Please login in Whatsapp Web via QR Code")
             WebDriverWait(self.driver, timeout).until(
                 EC.element_to_be_clickable((By.XPATH, "//div[@class='_2cNrC']")))
+        t = time.localtime()
+        self._start = str(time.strftime("%d-%m-%Y_%H%M%S", t))
         self.send_msg()
 
     def send_msg(self):
+        print("TEST: ",str(self._start))
         if os.path.isfile(self.csv_numbers):
             with open(self.csv_numbers, mode="r") as file:
                 csv_file = csv.reader(file)
@@ -78,8 +81,6 @@ class Bot:
 
                     self.driver.get(url)
                     try:
-                        t = time.localtime()
-                        self._start = str(time.strftime("%d-%m-%Y_%H%M%S", t))
                         text_btn = WebDriverWait(self.driver, timeout).until(
                             EC.element_to_be_clickable((By.XPATH, "//p[@class='selectable-text copyable-text']")))
                         if self.options[1]:
@@ -96,10 +97,9 @@ class Bot:
                     finally:
                         if not error:
                             print(Fore.GREEN, "Message sent correctly to: ", name, "|", number)
-                            self.log(number, error)
                         else:
                             print(Fore.RED, "Error sending message to: ", name, "|", number)
-                            self.log(number, error)
+                        self.log(number, error)
                         print(Style.RESET_ALL)
         else:
             error = False
@@ -131,10 +131,10 @@ class Bot:
 
         if not os.path.exists(path_sent):
             with open(path_sent, "w") as f:
-                pass
+                f.write("")
         if not os.path.exists(path_notsent):
             with open(path_notsent, "w") as f:
-                pass
+                f.write("")
 
         if not error:
             textfile = open(path_sent, "a")
