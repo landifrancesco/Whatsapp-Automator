@@ -69,7 +69,7 @@ class Menu:
         include_media = None
 
         while include_media != "y" and include_media != "n":
-            include_media = input("- Include media in the test messages? Y/N\n> ").lower()
+            include_media = input("- Include media in the test message? Y/N\n> ").lower()
 
             if include_media == "y":
                 self.send_withmedia(TEST_NUMBER)
