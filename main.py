@@ -66,40 +66,65 @@ class Menu:
             return txt
 
     def test_msg(self):
-        try:
-            assert TEST_NUMBER != ""
-            print(Fore.GREEN, "SEND TEST MESSAGE", Style.RESET_ALL)
-            txt = self.settings(test_mode=True)
-            print("Sending test message.")
+        include_media = None
+
+        while include_media != "y" and include_media != "n":
+            include_media = input("- Include media in the test messages? Y/N\n> ").lower()
+
+            if include_media == "y":
+                self.send_withmedia(TEST_NUMBER)
+            else:
+                self.send_msg(TEST_NUMBER)
+
+    def send_msg(self, test_number=False):
+        if not test_number:
+            print(Fore.GREEN, "SEND MESSAGES", Style.RESET_ALL)
+            csv, txt, include_names = self.settings()
+            print("Ready to start sending messages.")
             self.bot = Bot()
-            self.bot.csv_numbers = TEST_NUMBER
+            self.bot.csv_numbers = "data/" + csv
             self.bot.message = "data/" + txt
-            self.bot.options = [False, False]
-            self.bot.login()
-        except AssertionError:
-            print(Fore.RED, "You MUST set the TEST_NUMBER variable in main.py", Style.RESET_ALL)
+            self.bot.options = [include_names, False]
+            self.bot.login(PREFIX)
+        else:
+            try:
+                assert TEST_NUMBER != ""
+                print(Fore.GREEN, "SEND TEST MESSAGE", Style.RESET_ALL)
+                txt = self.settings(test_mode=True)
+                print("Sending test message.")
+                self.bot = Bot()
+                self.bot.csv_numbers = TEST_NUMBER
+                self.bot.message = "data/" + txt
+                self.bot.options = [False, False]
+                self.bot.login(PREFIX)
+            except AssertionError:
+                print(Fore.RED, "You MUST set the TEST_NUMBER variable in main.py", Style.RESET_ALL)
 
-    def send_msg(self):
-        print(Fore.GREEN, "SEND MESSAGES", Style.RESET_ALL)
-        csv, txt, include_names = self.settings()
-        print("Ready to start sending messages.")
-        self.bot = Bot()
-        self.bot.csv_numbers = "data/" + csv
-        self.bot.message = "data/" + txt
-        self.bot.options = [include_names, False]
-        self.bot.login()
-
-    def send_withmedia(self):
-        print(Fore.GREEN, "SEND MESSAGES WITH MEDIA", Style.RESET_ALL)
-        input(Fore.YELLOW + "Please COPY with CTRL+C the media you want to send, then press ENTER.")
-        print(Style.RESET_ALL)
-        csv, txt, include_names = self.settings()
-        print("Ready to start sending messages.")
-        self.bot = Bot()
-        self.bot.csv_numbers = "data/" + csv
-        self.bot.message = "data/" + txt
-        self.bot.options = [include_names, True]
-        self.bot.login()
+    def send_withmedia(self, test_number=False):
+        if not test_number:
+            print(Fore.GREEN, "SEND MESSAGES WITH MEDIA", Style.RESET_ALL)
+            input(Fore.YELLOW + "Please COPY with CTRL+C the media you want to send, then press ENTER.")
+            print(Style.RESET_ALL)
+            csv, txt, include_names = self.settings()
+            print("Ready to start sending messages.")
+            self.bot = Bot()
+            self.bot.csv_numbers = "data/" + csv
+            self.bot.message = "data/" + txt
+            self.bot.options = [include_names, True]
+            self.bot.login(PREFIX)
+        else:
+            try:
+                assert TEST_NUMBER != ""
+                print(Fore.GREEN, "SEND TEST MESSAGE WITH MEDIA", Style.RESET_ALL)
+                txt = self.settings(test_mode=True)
+                print("Sending test message.")
+                self.bot = Bot()
+                self.bot.csv_numbers = TEST_NUMBER
+                self.bot.message = "data/" + txt
+                self.bot.options = [False, True]
+                self.bot.login(PREFIX)
+            except AssertionError:
+                print(Fore.RED, "You MUST set the TEST_NUMBER variable in main.py", Style.RESET_ALL)
 
     def load_file(self, filetype):
         selection = 0
@@ -123,7 +148,7 @@ class Menu:
     def quit(self):
         print("If you like this script, please donate.")
         print("Send MATIC, BEP20, ERC20, BTC, BCH, CRO, LTC, DASH, CELO, ZEC, XRP to:")
-        print(Fore.GREEN, "landifrancesco.wallet")
+        print(Fore.GREEN, "landifrancesco.wallet", Style.RESET_ALL)
         sys.exit(0)
 
     def run(self):
