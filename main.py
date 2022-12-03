@@ -29,6 +29,7 @@ class Menu:
                   """)
         except AssertionError:
             print(Fore.RED, "Please fill the PREFIX variable in main.py", Style.RESET_ALL)
+            exit()
 
     def settings(self, test_mode=False):
         include_names = None
@@ -99,6 +100,7 @@ class Menu:
                 self.bot.login(PREFIX)
             except AssertionError:
                 print(Fore.RED, "You MUST set the TEST_NUMBER variable in main.py", Style.RESET_ALL)
+                exit()
 
     def send_withmedia(self, test_number=False):
         if not test_number:
@@ -125,6 +127,7 @@ class Menu:
                 self.bot.login(PREFIX)
             except AssertionError:
                 print(Fore.RED, "You MUST set the TEST_NUMBER variable in main.py", Style.RESET_ALL)
+                exit()
 
     def load_file(self, filetype):
         selection = 0
