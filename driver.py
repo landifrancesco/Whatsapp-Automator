@@ -51,7 +51,7 @@ class Bot:
             WebDriverWait(self.driver, timeout).until(
                 EC.element_to_be_clickable((By.XPATH, "//div[@class='_2cNrC']")))
         except TimeoutException:
-            print("Please login in Whatsapp Web via QR Code")
+            print(Fore.RED, "Please login in Whatsapp Web via QR Code. That's the last warning before stopping the program!", Style.RESET_ALL)
             WebDriverWait(self.driver, timeout).until(
                 EC.element_to_be_clickable((By.XPATH, "//div[@class='_2cNrC']")))
         t = time.localtime()
@@ -76,8 +76,8 @@ class Bot:
                     else:
                         message = self._message.replace("%NAME%", "")
 
-                    if "\n" in self._message:
-                        words = self._message.split("\n")
+                    if "\n" in message:
+                        words = message.split("\n")
                         multiline = True
 
                     try:
