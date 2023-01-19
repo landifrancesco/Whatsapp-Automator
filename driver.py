@@ -49,11 +49,11 @@ class Bot:
         print("Please login in Whatsapp Web via QR Code")
         try:
             WebDriverWait(self.driver, timeout).until(
-                EC.element_to_be_clickable((By.XPATH, "//div[@class='_2cNrC']")))
+                EC.element_to_be_clickable((By.XPATH, "//div[@class='_3OtEr']")))
         except TimeoutException:
             print(Fore.RED, "Please login in Whatsapp Web via QR Code. That's the last warning before stopping the program!", Style.RESET_ALL)
             WebDriverWait(self.driver, timeout).until(
-                EC.element_to_be_clickable((By.XPATH, "//div[@class='_2cNrC']")))
+                EC.element_to_be_clickable((By.XPATH, "//div[@class='_3OtEr']")))
         t = time.localtime()
         self._start = str(time.strftime("%d-%m-%Y_%H%M%S", t))
         self.send_msg()
@@ -98,7 +98,8 @@ class Bot:
                             text_btn = WebDriverWait(self.driver, timeout).until(
                             EC.element_to_be_clickable((By.XPATH, "//div[@class='fd365im1 to2l77zo bbv8nyr4 mwp4sxku gfz4du6o ag5g9lrv']")))
                             image_btn = WebDriverWait(self.driver, timeout).until(
-                                EC.element_to_be_clickable((By.XPATH, "//div[@class='_33pCO']")))
+                                EC.element_to_be_clickable((By.XPATH, "//div[@class='_3wFFT']")))
+                            sleep(3)
                             if multiline:
                                 for w in words:
                                     text_btn.send_keys(w)
