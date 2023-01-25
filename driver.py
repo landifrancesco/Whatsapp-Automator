@@ -15,7 +15,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 timeout = 30
 
-
 class Bot:
     """
     Bot class that install Chrome driver automatically
@@ -23,17 +22,20 @@ class Bot:
 
     def __init__(self):
         options = Options()
-        # options.add_experimental_option("excludeSwitches", ["enable-logging"])
-        options.add_argument("--profile-directory=Default")
-        # options.add_argument("--user-data-dir=/var/tmp/chrome_user_data")
+
+        options.add_argument("start-maximized")
+
+        options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
         self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
         self._message = None
         self._csv_numbers = None
         self._options = [False, False]
         self._start = None
+        self.__prefix = None
 
-    def login(self):
+    def login(self, prefix):
+        self.__prefix = prefix
         try:
             self.driver.get('https://web.whatsapp.com')
         except Exception as e:
@@ -47,15 +49,21 @@ class Bot:
         print("Please login in Whatsapp Web via QR Code")
         try:
             WebDriverWait(self.driver, timeout).until(
-                EC.element_to_be_clickable((By.XPATH, "//div[@class='ldL67 _2i3T7']")))
+                EC.element_to_be_clickable((By.XPATH, "//div[@class='_3OtEr']")))
         except TimeoutException:
-            self.wait()
+            print(Fore.RED, "Please login in Whatsapp Web via QR Code. That's the last warning before stopping the program!", Style.RESET_ALL)
+            WebDriverWait(self.driver, timeout).until(
+                EC.element_to_be_clickable((By.XPATH, "//div[@class='_3OtEr']")))
+        t = time.localtime()
+        self._start = str(time.strftime("%d-%m-%Y_%H%M%S", t))
         self.send_msg()
 
     def send_msg(self):
         if os.path.isfile(self.csv_numbers):
             with open(self.csv_numbers, mode="r") as file:
                 csv_file = csv.reader(file)
+                multiline = False
+                
                 for row in csv_file:
                     error = False
                     name = row[0]
@@ -68,23 +76,41 @@ class Bot:
                     else:
                         message = self._message.replace("%NAME%", "")
 
+                    if "\n" in message:
+                        words = message.split("\n")
+                        multiline = True
+
                     try:
-                        url = 'https://web.whatsapp.com/send?phone=+39' + number.strip() + '&text=' + message
+                        if not multiline:
+                            url = 'https://web.whatsapp.com/send?phone=' + self.__prefix + number.strip() + '&text=' + message
+                        else:
+                            url = 'https://web.whatsapp.com/send?phone=' + self.__prefix + number.strip() + '&text='
                     except FileNotFoundError:
                         print(Fore.RED, "Error reading data, check numbers and message files.", Style.RESET_ALL)
 
                     self.driver.get(url)
                     try:
-                        t = time.localtime()
-                        self._start = str(time.strftime("%d-%m-%Y_%H%M%S", t))
                         text_btn = WebDriverWait(self.driver, timeout).until(
                             EC.element_to_be_clickable((By.XPATH, "//p[@class='selectable-text copyable-text']")))
                         if self.options[1]:
                             text_btn.send_keys(Keys.CONTROL + 'v')
+                            sleep(3)
+                            text_btn = WebDriverWait(self.driver, timeout).until(
+                            EC.element_to_be_clickable((By.XPATH, "//div[@class='fd365im1 to2l77zo bbv8nyr4 mwp4sxku gfz4du6o ag5g9lrv']")))
                             image_btn = WebDriverWait(self.driver, timeout).until(
-                                EC.element_to_be_clickable((By.XPATH, "//div[@class='_33pCO']")))
+                                EC.element_to_be_clickable((By.XPATH, "//div[@class='_3wFFT']")))
+                            sleep(3)
+                            if multiline:
+                                for w in words:
+                                    text_btn.send_keys(w)
+                                    text_btn.send_keys(Keys.LEFT_SHIFT + Keys.RETURN)
                             image_btn.click()
+                            text_btn.send_keys(Keys.RETURN)
                         else:
+                            if multiline:
+                                for w in words:
+                                    text_btn.send_keys(w)
+                                    text_btn.send_keys(Keys.LEFT_SHIFT + Keys.RETURN)
                             text_btn.send_keys(Keys.RETURN)
                         sleep(3)
                     except Exception as e:
@@ -93,32 +119,67 @@ class Bot:
                     finally:
                         if not error:
                             print(Fore.GREEN, "Message sent correctly to: ", name, "|", number)
-                            self.log(number, error)
                         else:
                             print(Fore.RED, "Error sending message to: ", name, "|", number)
-                            self.log(number, error)
+                        self.log(number, error)
                         print(Style.RESET_ALL)
         else:
             error = False
-            number = str(self.csv_numbers)  # Get the test number
-            message = self._message
+            name = row[0]
+            number = row[1]
 
-            url = 'https://web.whatsapp.com/send?phone=' + number.strip() + '&text=' + message
+            print("Sending message to: ", name, "|", number)
+
+            if self._options[0] and name != "":
+                message = self._message.replace("%NAME%", name)
+            else:
+                message = self._message.replace("%NAME%", "")
+
+            if "\n" in self._message:
+                words = self._message.split("\n")
+                multiline = True
+
+            try:
+                if not multiline:
+                    url = 'https://web.whatsapp.com/send?phone=' + self.__prefix + number.strip() + '&text=' + message
+                else:
+                    url = 'https://web.whatsapp.com/send?phone=' + self.__prefix + number.strip() + '&text='
+            except FileNotFoundError:
+                print(Fore.RED, "Error reading data, check numbers and message files.", Style.RESET_ALL)
 
             self.driver.get(url)
             try:
                 text_btn = WebDriverWait(self.driver, timeout).until(
                     EC.element_to_be_clickable((By.XPATH, "//p[@class='selectable-text copyable-text']")))
-                text_btn.send_keys(Keys.RETURN)
+                if self.options[1]:
+                    text_btn.send_keys(Keys.CONTROL + 'v')
+                    sleep(3)
+                    text_btn = WebDriverWait(self.driver, timeout).until(
+                    EC.element_to_be_clickable((By.XPATH, "//div[@class='fd365im1 to2l77zo bbv8nyr4 mwp4sxku gfz4du6o ag5g9lrv']")))
+                    image_btn = WebDriverWait(self.driver, timeout).until(
+                        EC.element_to_be_clickable((By.XPATH, "//div[@class='_33pCO']")))
+                    if multiline:
+                        for w in words:
+                            text_btn.send_keys(w)
+                            text_btn.send_keys(Keys.LEFT_SHIFT + Keys.RETURN)
+                    image_btn.click()
+                    text_btn.send_keys(Keys.RETURN)
+                else:
+                    if multiline:
+                        for w in words:
+                            text_btn.send_keys(w)
+                            text_btn.send_keys(Keys.LEFT_SHIFT + Keys.RETURN)
+                    text_btn.send_keys(Keys.RETURN)
                 sleep(3)
             except Exception as e:
                 print(e)
                 error = True
             finally:
                 if not error:
-                    print(Fore.GREEN, "Test message sent correctly to: ", number)
+                    print(Fore.GREEN, "Message sent correctly to: ", name, "|", number)
                 else:
-                    print(Fore.RED, "Error sending test message to: ", number)
+                    print(Fore.RED, "Error sending message to: ", name, "|", number)
+                self.log(number, error)
                 print(Style.RESET_ALL)
 
     def log(self, string, error):
@@ -128,10 +189,10 @@ class Bot:
 
         if not os.path.exists(path_sent):
             with open(path_sent, "w") as f:
-                pass
+                f.write("")
         if not os.path.exists(path_notsent):
             with open(path_notsent, "w") as f:
-                pass
+                f.write("")
 
         if not error:
             textfile = open(path_sent, "a")
