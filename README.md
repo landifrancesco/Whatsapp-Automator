@@ -24,7 +24,7 @@ pip3 install -r requirements.txt
 YOU MUST SET **PREFIX** and **TEST_NUMBER** variables.
 
 Example:
-> PREFIX = "+39" # The national prefix
+> PREFIX = "39" # The national prefix without the + <br>
 > TEST_NUMBER = "3333333333" # Test number without national prefix
 
 ### 2) Phone numbers file
