@@ -82,23 +82,25 @@ class Bot:
 
                     try:
                         if not multiline:
-                            url = 'https://web.whatsapp.com/send?phone=' + self.__prefix + number.strip() + '&text=' + message
+                            url = 'https://web.whatsapp.com/send?phone=' + self.__prefix + number.strip() + '&text=' + message + '&type=phone_number&app_absent=0'
                         else:
-                            url = 'https://web.whatsapp.com/send?phone=' + self.__prefix + number.strip() + '&text='
+                            url = 'https://web.whatsapp.com/send?phone=' + self.__prefix + number.strip() + '&text=&type=phone_number&app_absent=0'
                     except FileNotFoundError:
                         print(Fore.RED, "Error reading data, check numbers and message files.", Style.RESET_ALL)
 
                     self.driver.get(url)
                     try:
                         text_btn = WebDriverWait(self.driver, timeout).until(
-                            EC.element_to_be_clickable((By.XPATH, "//p[@class='selectable-text copyable-text']")))
+                            EC.element_to_be_clickable((By.XPATH, "//p[@class='selectable-text copyable-text iq0m558w']")))
                         if self.options[1]:
                             text_btn.send_keys(Keys.CONTROL + 'v')
                             sleep(3)
+                            # text_btn = WebDriverWait(self.driver, timeout).until(
+                            # EC.element_to_be_clickable((By.XPATH, "//div[@class='fd365im1 to2l77zo bbv8nyr4 mwp4sxku gfz4du6o ag5g9lrv']")))
                             text_btn = WebDriverWait(self.driver, timeout).until(
-                            EC.element_to_be_clickable((By.XPATH, "//div[@class='fd365im1 to2l77zo bbv8nyr4 mwp4sxku gfz4du6o ag5g9lrv']")))
+                            EC.element_to_be_clickable((By.XPATH, "//p[@class='selectable-text copyable-text iq0m558w']")))
                             image_btn = WebDriverWait(self.driver, timeout).until(
-                                EC.element_to_be_clickable((By.XPATH, "//div[@class='_3wFFT']")))
+                                EC.element_to_be_clickable((By.XPATH, "//div[@class='g0rxnol2']")))
                             sleep(3)
                             if multiline:
                                 for w in words:

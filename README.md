@@ -50,9 +50,10 @@ python3 main.py
 
 ## To-Do
 
+- [ ] IMPLEMENT EMOJI PASTING
 - [ ] Clean code and add useful comments
 - [ ] Check for most of the exceptions that could occur
-- [ ] Test the script on Windows and Mac OS
+- [X] Test the script on Windows and Mac OS
 
 ## Donate
 
