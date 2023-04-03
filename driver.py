@@ -49,11 +49,11 @@ class Bot:
         print("Please login in Whatsapp Web via QR Code")
         try:
             WebDriverWait(self.driver, timeout).until(
-                EC.element_to_be_clickable((By.XPATH, "//div[@class='_3OtEr']")))
+                EC.element_to_be_clickable((By.XPATH, "//div[@class='_3WByx']")))
         except TimeoutException:
             print(Fore.RED, "Please login in Whatsapp Web via QR Code. That's the last warning before stopping the program!", Style.RESET_ALL)
             WebDriverWait(self.driver, timeout).until(
-                EC.element_to_be_clickable((By.XPATH, "//div[@class='_3OtEr']")))
+                EC.element_to_be_clickable((By.XPATH, "//div[@class='_3WByx']")))
         t = time.localtime()
         self._start = str(time.strftime("%d-%m-%Y_%H%M%S", t))
         self.send_msg()
@@ -88,15 +88,17 @@ class Bot:
                     except FileNotFoundError:
                         print(Fore.RED, "Error reading data, check numbers and message files.", Style.RESET_ALL)
 
+                    sleep(1)
                     self.driver.get(url)
                     try:
-                        text_btn = WebDriverWait(self.driver, timeout).until(
-                            EC.element_to_be_clickable((By.XPATH, "//p[@class='selectable-text copyable-text iq0m558w']")))
+                        sleep(10)
+                        elements = self.driver.find_elements(By.XPATH, "//p[@class='selectable-text copyable-text iq0m558w']")
+                        # text_btn = WebDriverWait(self.driver, timeout).until(
+                        #     EC.element_to_be_clickable((By.XPATH, "//p[@class='selectable-text copyable-text iq0m558w']")))
+                        text_btn = elements[1]
                         if self.options[1]:
                             text_btn.send_keys(Keys.CONTROL + 'v')
                             sleep(3)
-                            # text_btn = WebDriverWait(self.driver, timeout).until(
-                            # EC.element_to_be_clickable((By.XPATH, "//div[@class='fd365im1 to2l77zo bbv8nyr4 mwp4sxku gfz4du6o ag5g9lrv']")))
                             text_btn = WebDriverWait(self.driver, timeout).until(
                             EC.element_to_be_clickable((By.XPATH, "//p[@class='selectable-text copyable-text iq0m558w']")))
                             image_btn = WebDriverWait(self.driver, timeout).until(
@@ -113,7 +115,11 @@ class Bot:
                                 for w in words:
                                     text_btn.send_keys(w)
                                     text_btn.send_keys(Keys.LEFT_SHIFT + Keys.RETURN)
-                            text_btn.send_keys(Keys.RETURN)
+                            send_btn = WebDriverWait(self.driver, timeout).until(
+                                EC.element_to_be_clickable((By.XPATH,
+                                                            "//button[@class='tvf2evcx oq44ahr5 lb5m6g5c svlsagor p2rjqpw5 epia9gcq']")))
+                            sleep(1)
+                            send_btn.click()
                         sleep(3)
                     except Exception as e:
                         print(e)
@@ -152,7 +158,7 @@ class Bot:
             self.driver.get(url)
             try:
                 text_btn = WebDriverWait(self.driver, timeout).until(
-                    EC.element_to_be_clickable((By.XPATH, "//p[@class='selectable-text copyable-text']")))
+                    EC.element_to_be_clickable((By.XPATH, "//p[@class='selectable-text copyable-text iq0m558w']")))
                 if self.options[1]:
                     text_btn.send_keys(Keys.CONTROL + 'v')
                     sleep(3)
