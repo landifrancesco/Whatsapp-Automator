@@ -2,9 +2,8 @@ from driver import Bot, Fore, Style
 import sys
 import os
 
-PREFIX = "" # The national prefix without the +
-TEST_NUMBER = "" # Test number without national prefix
-
+PREFIX = ""  # The national prefix without the +
+TEST_NUMBER = ""  # Test number without national prefix
 
 
 class Menu:
@@ -20,7 +19,7 @@ class Menu:
     def display(self):
         try:
             assert PREFIX != "" and "+" not in PREFIX
-            print("WHATSAPP AUTOMATOR\n",Fore.YELLOW, "You have chosen this number prefix: ", PREFIX, Style.RESET_ALL)
+            print("WHATSAPP AUTOMATOR\n", Fore.YELLOW, "You have chosen this number prefix: ", PREFIX, Style.RESET_ALL)
             print("""
                   1. Send test message
                   2. Send messages
@@ -28,7 +27,8 @@ class Menu:
                   4. Quit
                   """)
         except AssertionError:
-            print(Fore.RED, "Please fill the PREFIX variable in main.py OR try removing the + in the PREFIX", Style.RESET_ALL)
+            print(Fore.RED, "Please fill the PREFIX variable in main.py OR try removing the + in the PREFIX",
+                  Style.RESET_ALL)
             exit()
 
     def settings(self, test_mode=False):

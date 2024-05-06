@@ -8,12 +8,13 @@ from selenium import webdriver
 from selenium.common import TimeoutException
 from selenium.webdriver import Keys
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
-
 timeout = 30
+
 
 class Bot:
     """
@@ -27,7 +28,7 @@ class Bot:
 
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
-        self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+        self.driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
         self._message = None
         self._csv_numbers = None
         self._options = [False, False]
@@ -49,11 +50,11 @@ class Bot:
         print("Please login in Whatsapp Web via QR Code")
         try:
             WebDriverWait(self.driver, timeout).until(
-                EC.element_to_be_clickable((By.XPATH, "//div[@class='_3WByx']")))
+                EC.element_to_be_clickable((By.XPATH, "//div[@class='_ak0w']")))
         except TimeoutException:
             print(Fore.RED, "Please login in Whatsapp Web via QR Code. That's the last warning before stopping the program!", Style.RESET_ALL)
             WebDriverWait(self.driver, timeout).until(
-                EC.element_to_be_clickable((By.XPATH, "//div[@class='_3WByx']")))
+                EC.element_to_be_clickable((By.XPATH, "//div[@class='_ak0w']")))
         t = time.localtime()
         self._start = str(time.strftime("%d-%m-%Y_%H%M%S", t))
         self.send_msg()
@@ -92,7 +93,7 @@ class Bot:
                     self.driver.get(url)
                     try:
                         sleep(10)
-                        elements = self.driver.find_elements(By.XPATH, "//p[@class='selectable-text copyable-text iq0m558w']")
+                        elements = self.driver.find_elements(By.XPATH, "//p[@class='selectable-text copyable-text x15bjb6t x1n2onr6']")
                         # text_btn = WebDriverWait(self.driver, timeout).until(
                         #     EC.element_to_be_clickable((By.XPATH, "//p[@class='selectable-text copyable-text iq0m558w']")))
                         text_btn = elements[1]
@@ -100,9 +101,9 @@ class Bot:
                             text_btn.send_keys(Keys.CONTROL + 'v')
                             sleep(3)
                             text_btn = WebDriverWait(self.driver, timeout).until(
-                            EC.element_to_be_clickable((By.XPATH, "//p[@class='selectable-text copyable-text iq0m558w']")))
+                            EC.element_to_be_clickable((By.XPATH, "//p[@class='selectable-text copyable-text x15bjb6t x1n2onr6']")))
                             image_btn = WebDriverWait(self.driver, timeout).until(
-                                EC.element_to_be_clickable((By.XPATH, "//div[@class='g0rxnol2']")))
+                                EC.element_to_be_clickable((By.XPATH, "//div[@class='x1n2onr6']")))
                             sleep(3)
                             if multiline:
                                 for w in words:
@@ -117,7 +118,7 @@ class Bot:
                                     text_btn.send_keys(Keys.LEFT_SHIFT + Keys.RETURN)
                             send_btn = WebDriverWait(self.driver, timeout).until(
                                 EC.element_to_be_clickable((By.XPATH,
-                                                            "//button[@class='tvf2evcx oq44ahr5 lb5m6g5c svlsagor p2rjqpw5 epia9gcq']")))
+                                                            "//button[@class='x1c4vz4f x2lah0s xdl72j9 xfect85 x1iy03kw x1lfpgzf']")))
                             sleep(1)
                             send_btn.click()
                         sleep(3)
