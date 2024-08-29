@@ -1,70 +1,108 @@
-# Whatsapp Automator
 
-A bot that automates sending messages in bulk via Whatsapp Web. <br>
-You can:
-- Send messages in bulk
-- Send messages in bulk with media attached
-- Send a test message to a number of you choice (TEST_NUMBER variable must be set in main.py)
+# 🚀 WhatsApp Automator
 
-The script saves a log file of the correctly and not correctly sent messages. The name syntax is DD-MM-YYYY_HMS.
+## 📖 Overview
 
-**TESTED ON WINDOWS and LINUX**
+**WhatsApp Automator** is a powerful Python tool designed to automate sending messages via WhatsApp Web. Whether you're sending text or media, this bot makes it simple and efficient to manage bulk messaging tasks while keeping things personalized.
 
-## How-to
+## ✨ Features
 
-The numbers' and message files **must** be in the _data directory_
-<br>
+- 📩 **Send Messages**: Automatically deliver text messages to multiple contacts from a CSV file.
+- 🎥 **Send Messages with Media**: Attach images, videos, and other media to your messages.
+- 🛠️ **Customizable**: Easily personalize your messages with names and other placeholders.
+- 🔒 **Persistent Login**: No need to scan the QR code each time—your session is saved!
 
-### 1) Requirements
+## 🛠️ Requirements
 
-```bash
-pip3 install -r requirements.txt
-```
+- **Python 3.x**
+- **Google Chrome**
+- **ChromeDriver** (automatically managed by `webdriver-manager`)
 
-YOU MUST SET **PREFIX** and **TEST_NUMBER** variables.
+### 🧰 Install Dependencies
 
-Example:
-> PREFIX = "39" # The national prefix without the + <br>
-> TEST_NUMBER = "3333333333" # Test number without national prefix
-
-### 2) Phone numbers file
-
-It must be a **.csv** file with this syntax:
-
-> NAME1, NUMBER1 <br>
-> NAME2, NUMBER2 <br>
-> etc.
-
-N.B. If you don't have any names, please **leave the first column empty**.
-
-### 3) Message file
-
-It must be a **.txt** file. <br>
-If you'd like to include the names of the people, you must write **%NAME%** in the message file then the script will automatically overwrite it.
-
-### 4) Execution
+Make sure you have all the required Python packages by running:
 
 ```bash
-python3 main.py
+pip install -r requirements.txt
 ```
 
-## To-Do
+**Packages you need**:
+- `colorama`
+- `selenium`
+- `undetected-chromedriver`
+- `webdriver-manager`
 
-- [ ] IMPLEMENT EMOJI PASTING
-- [ ] Clean code and add useful comments
-- [ ] Check for most of the exceptions that could occur
-- [X] Test the script on Windows and Mac OS
+## 🚀 Setup
 
-## Donate
+### 1. Clone the Repository
 
-If you like this script, please donate.
+```bash
+git clone https://github.com/yourusername/whatsapp-automator.git
+cd whatsapp-automator
+```
 
-Send MATIC, BEP20, ERC20, BTC, BCH, CRO, LTC, DASH, CELO, ZEC, XRP to:
-**landifrancesco.wallet**
+### 2. Install Required Packages
 
-#### My profile on Unstoppable Domains:
-https://ud.me/landifrancesco.wallet
+```bash
+pip install -r requirements.txt
+```
 
-## Disclaimer
+### 3. Prepare Your Data
 
-This code is in no way affiliated with, authorized, maintained, sponsored or endorsed by WhatsApp or any of its affiliates or subsidiaries. This is an independent and unofficial software. Use at your own risk. Commercial use of this code/repo is strictly prohibited.
+- **Message File**: Create a `.txt` file in the `data/` directory containing the message you want to send. Use `%NAME%` as a placeholder to personalize the message.
+- **CSV File**: Prepare a `.csv` file in the `data/` directory with contact numbers and names. The CSV should have two columns: `Name` and `Number`.
+
+**Important**: The numbers in the CSV file **should not** include the international prefix. The script will automatically prepend the prefix you set in `main.py`.
+
+**Note**: The `message.txt` and `contacts.csv` are just example file names. The script scans for all `.txt` and `.csv` files in the `data` directory, allowing you to choose from multiple files during execution.
+
+### 4. Set Your Country Prefix
+
+Edit the `main.py` file and set your country’s prefix:
+
+```bash
+PREFIX = ""  # Your country prefix without the +
+```
+
+## 🚀 Running the Bot
+
+To run the bot, simply execute:
+
+```bash
+python main.py
+```
+
+## 🎛️ Menu Options
+
+1. **Send Messages**: Select your message and contact files, and the bot will send the messages to all contacts.
+2. **Send Messages with Media**: Like the first option but with media attachments. Make sure your media is copied to the clipboard before running.
+3. **Quit**: Exit the application.
+
+### Example Files
+
+- **Message File (`message.txt`)**:
+  ```text
+  Hello %NAME%,
+  This is a reminder about our meeting tomorrow at 10 AM.
+  ```
+
+- **CSV File (`contacts.csv`)**:
+  ```csv
+  Name,Number
+  John Doe,123456789
+  Jane Doe,987654321
+  ```
+
+**Note**: The numbers in `contacts.csv` should **not** include the international prefix.
+
+## ⚠️ Disclaimer
+
+This software is an **unofficial** tool and is **not affiliated** with WhatsApp. It may potentially infringe on WhatsApp's Terms and Conditions. **Use at your own risk**.
+
+## ❤️ Support
+
+If this tool helps you, consider supporting by donating via MATIC, BEP20, ERC20, BTC, BCH, CRO, LTC, DASH, CELO, ZEC, XRP to `landifrancesco.wallet`.
+
+## 📜 License
+
+Licensed under the GPL-3.0 License.
