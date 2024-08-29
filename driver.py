@@ -1,5 +1,6 @@
 import csv
 import os.path
+import random
 import time
 from time import sleep
 
@@ -11,205 +12,169 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait
+from undetected_chromedriver import Chrome
 from webdriver_manager.chrome import ChromeDriverManager
+
+
+# Define a timeout for waiting for elements to load
 timeout = 30
 
 
 class Bot:
     """
-    Bot class that install Chrome driver automatically
+    Bot class that automates WhatsApp Web interactions using a Chrome driver.
     """
 
     def __init__(self):
+        # Configure Chrome options
         options = Options()
+        # Use a specific Chrome user profile to save the session
+        options.add_argument("user-data-dir=./chrome-data")  # Path to where the user data will be stored
 
-        options.add_argument("start-maximized")
-
-        options.add_experimental_option('excludeSwitches', ['enable-logging'])
-
-        self.driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
+        # Initialize the undetected Chrome driver
+        self.driver = Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
         self._message = None
         self._csv_numbers = None
-        self._options = [False, False]
-        self._start = None
+        self._options = [False, False]  # [include_names, include_media]
+        self._start_time = None
         self.__prefix = None
 
+    def click_button(self, css_selector):
+        """
+        Clicks the send button (specified by its CSS selector).
+        """
+        button = WebDriverWait(self.driver, timeout).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, css_selector))
+        )
+        sleep(1)
+        button.click()
+
+    def construct_whatsapp_url(self, number):
+        """
+        Constructs the WhatsApp Web URL for opening a chat with a contact.
+        """
+        return f'https://web.whatsapp.com/send?phone={self.__prefix}{number.strip()}&type=phone_number&app_absent=0'
+
     def login(self, prefix):
+        """
+        Logs in to WhatsApp Web by navigating to the login page.
+        Waits indefinitely until the QR code is scanned and/or clickable element appears.
+        """
         self.__prefix = prefix
         try:
             self.driver.get('https://web.whatsapp.com')
         except Exception as e:
             print(e)
-            print("Trying again ...")
+            print("Retrying login...")
             self.driver.get('https://web.whatsapp.com')
-        self.wait()
-        self.driver.close()
 
-    def wait(self):
-        print("Please login in Whatsapp Web via QR Code")
+        # Reusing the method to wait for the QR code scan
+        self.wait_for_element_to_be_clickable(
+            "//div[@class='x1n2onr6 x14yjl9h xudhj91 x18nykt9 xww2gxu']",
+            success_message="Logged in successfully!",
+            error_message="Please login to WhatsApp Web via QR Code."
+        )
+
+        # Record the start time for logs
+        self._start_time = time.strftime("%d-%m-%Y_%H%M%S", time.localtime())
+        self.send_messages_to_all_contacts()
+
+    def log_result(self, number, error):
+        """
+        Logs the result of each message send attempt.
+        """
+        assert self._start_time is not None
+        log_path = "logs/" + self._start_time + ("_notsent.txt" if error else "_sent.txt")
+
+        with open(log_path, "a") as logfile:
+            logfile.write(number.strip() + "\n")
+
+    def paste_media(self):
+        """
+        Pastes selected media using CTRL+V.
+        """
+        message_box = WebDriverWait(self.driver, timeout).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "div[aria-label='Type a message'][contenteditable='true']"))
+        )
+        message_box.send_keys(Keys.CONTROL, 'v')
+
+    def prepare_message(self, name):
+        """
+        Prepares the message, including the recipient's name if specified.
+        """
+        if self._options[0] and name:
+            return self._message.replace("%NAME%", name)
+        return self._message.replace("%NAME%", "")
+
+    def quit_driver(self):
+        """
+        Closes the WebDriver session and quits the browser.
+        """
+        if self.driver:
+            self.driver.quit()
+            print(Fore.YELLOW, "Driver closed successfully.", Style.RESET_ALL)
+
+    def send_messages_to_all_contacts(self):
+        """
+        Sends messages to all contacts listed in the provided CSV file.
+        Closes the driver after execution.
+        """
+        if not os.path.isfile(self._csv_numbers):
+            print(Fore.RED, "CSV file not found!", Style.RESET_ALL)
+            return
+
+        try:
+            with open(self._csv_numbers, mode="r") as file:
+                csv_reader = csv.reader(file)
+                multiline = "\n" in self._message
+
+                for row in csv_reader:
+                    name, number = row[0], row[1]
+                    print(f"Sending message to: {name} | {number}")
+                    message = self.prepare_message(name)
+                    url = self.construct_whatsapp_url(number)  # Generate URL without the message
+
+                    error = self.send_message_to_contact(url, message)
+                    self.log_result(number, error)
+
+                    # Random sleep between sending messages to avoid being detected
+                    sleep(random.uniform(1, 10))
+        finally:
+            self.quit_driver()
+
+    def type_message(self, text_element, message):
+        """
+        Types the message into the appropriate text element.
+        Handles multiline messages.
+        """
+        multiline = "\n" in message
+        if multiline:
+            for line in message.split("\n"):
+                text_element.send_keys(line)
+                text_element.send_keys(Keys.LEFT_SHIFT + Keys.RETURN)
+        else:
+            text_element.send_keys(message)
+
+    def wait_for_element_to_be_clickable(self, xpath, success_message=None, error_message=None):
+        """
+        Waits indefinitely for an element to be clickable.
+        :param xpath: The XPATH of the element to wait for.
+        :param success_message: Message to display when the element becomes clickable.
+        :param error_message: Message to display in case of timeout.
+        """
         try:
             WebDriverWait(self.driver, timeout).until(
-                EC.element_to_be_clickable((By.XPATH, "//div[@class='_ak0w']")))
+                EC.element_to_be_clickable((By.XPATH, xpath))
+            )
+            if success_message:
+                print(Fore.GREEN, success_message, Style.RESET_ALL)
         except TimeoutException:
-            print(Fore.RED, "Please login in Whatsapp Web via QR Code. That's the last warning before stopping the program!", Style.RESET_ALL)
+            if error_message:
+                print(Fore.RED, error_message, Style.RESET_ALL)
             WebDriverWait(self.driver, timeout).until(
-                EC.element_to_be_clickable((By.XPATH, "//div[@class='_ak0w']")))
-        t = time.localtime()
-        self._start = str(time.strftime("%d-%m-%Y_%H%M%S", t))
-        self.send_msg()
-
-    def send_msg(self):
-        if os.path.isfile(self.csv_numbers):
-            with open(self.csv_numbers, mode="r") as file:
-                csv_file = csv.reader(file)
-                multiline = False
-                
-                for row in csv_file:
-                    error = False
-                    name = row[0]
-                    number = row[1]
-
-                    print("Sending message to: ", name, "|", number)
-
-                    if self._options[0] and name != "":
-                        message = self._message.replace("%NAME%", name)
-                    else:
-                        message = self._message.replace("%NAME%", "")
-
-                    if "\n" in message:
-                        words = message.split("\n")
-                        multiline = True
-
-                    try:
-                        if not multiline:
-                            url = 'https://web.whatsapp.com/send?phone=' + self.__prefix + number.strip() + '&text=' + message + '&type=phone_number&app_absent=0'
-                        else:
-                            url = 'https://web.whatsapp.com/send?phone=' + self.__prefix + number.strip() + '&text=&type=phone_number&app_absent=0'
-                    except FileNotFoundError:
-                        print(Fore.RED, "Error reading data, check numbers and message files.", Style.RESET_ALL)
-
-                    sleep(1)
-                    self.driver.get(url)
-                    try:
-                        sleep(10)
-                        elements = self.driver.find_elements(By.XPATH, "//p[@class='selectable-text copyable-text x15bjb6t x1n2onr6']")
-                        # text_btn = WebDriverWait(self.driver, timeout).until(
-                        #     EC.element_to_be_clickable((By.XPATH, "//p[@class='selectable-text copyable-text iq0m558w']")))
-                        text_btn = elements[1]
-                        if self.options[1]:
-                            text_btn.send_keys(Keys.CONTROL + 'v')
-                            sleep(3)
-                            text_btn = WebDriverWait(self.driver, timeout).until(
-                            EC.element_to_be_clickable((By.XPATH, "//p[@class='selectable-text copyable-text x15bjb6t x1n2onr6']")))
-                            image_btn = WebDriverWait(self.driver, timeout).until(
-                                EC.element_to_be_clickable((By.XPATH, "//div[@class='x1n2onr6']")))
-                            sleep(3)
-                            if multiline:
-                                for w in words:
-                                    text_btn.send_keys(w)
-                                    text_btn.send_keys(Keys.LEFT_SHIFT + Keys.RETURN)
-                            image_btn.click()
-                            text_btn.send_keys(Keys.RETURN)
-                        else:
-                            if multiline:
-                                for w in words:
-                                    text_btn.send_keys(w)
-                                    text_btn.send_keys(Keys.LEFT_SHIFT + Keys.RETURN)
-                            send_btn = WebDriverWait(self.driver, timeout).until(
-                                EC.element_to_be_clickable((By.XPATH,
-                                                            "//button[@class='x1c4vz4f x2lah0s xdl72j9 xfect85 x1iy03kw x1lfpgzf']")))
-                            sleep(1)
-                            send_btn.click()
-                        sleep(3)
-                    except Exception as e:
-                        print(e)
-                        error = True
-                    finally:
-                        if not error:
-                            print(Fore.GREEN, "Message sent correctly to: ", name, "|", number)
-                        else:
-                            print(Fore.RED, "Error sending message to: ", name, "|", number)
-                        self.log(number, error)
-                        print(Style.RESET_ALL)
-        else:
-            error = False
-            name = row[0]
-            number = row[1]
-
-            print("Sending message to: ", name, "|", number)
-
-            if self._options[0] and name != "":
-                message = self._message.replace("%NAME%", name)
-            else:
-                message = self._message.replace("%NAME%", "")
-
-            if "\n" in self._message:
-                words = self._message.split("\n")
-                multiline = True
-
-            try:
-                if not multiline:
-                    url = 'https://web.whatsapp.com/send?phone=' + self.__prefix + number.strip() + '&text=' + message
-                else:
-                    url = 'https://web.whatsapp.com/send?phone=' + self.__prefix + number.strip() + '&text='
-            except FileNotFoundError:
-                print(Fore.RED, "Error reading data, check numbers and message files.", Style.RESET_ALL)
-
-            self.driver.get(url)
-            try:
-                text_btn = WebDriverWait(self.driver, timeout).until(
-                    EC.element_to_be_clickable((By.XPATH, "//p[@class='selectable-text copyable-text iq0m558w']")))
-                if self.options[1]:
-                    text_btn.send_keys(Keys.CONTROL + 'v')
-                    sleep(3)
-                    text_btn = WebDriverWait(self.driver, timeout).until(
-                    EC.element_to_be_clickable((By.XPATH, "//div[@class='fd365im1 to2l77zo bbv8nyr4 mwp4sxku gfz4du6o ag5g9lrv']")))
-                    image_btn = WebDriverWait(self.driver, timeout).until(
-                        EC.element_to_be_clickable((By.XPATH, "//div[@class='_33pCO']")))
-                    if multiline:
-                        for w in words:
-                            text_btn.send_keys(w)
-                            text_btn.send_keys(Keys.LEFT_SHIFT + Keys.RETURN)
-                    image_btn.click()
-                    text_btn.send_keys(Keys.RETURN)
-                else:
-                    if multiline:
-                        for w in words:
-                            text_btn.send_keys(w)
-                            text_btn.send_keys(Keys.LEFT_SHIFT + Keys.RETURN)
-                    text_btn.send_keys(Keys.RETURN)
-                sleep(3)
-            except Exception as e:
-                print(e)
-                error = True
-            finally:
-                if not error:
-                    print(Fore.GREEN, "Message sent correctly to: ", name, "|", number)
-                else:
-                    print(Fore.RED, "Error sending message to: ", name, "|", number)
-                self.log(number, error)
-                print(Style.RESET_ALL)
-
-    def log(self, string, error):
-        assert self._start is not None
-        path_sent = "logs/" + self._start + "_sent.txt"
-        path_notsent = "logs/" + self._start + "_notsent.txt"
-
-        if not os.path.exists(path_sent):
-            with open(path_sent, "w") as f:
-                f.write("")
-        if not os.path.exists(path_notsent):
-            with open(path_notsent, "w") as f:
-                f.write("")
-
-        if not error:
-            textfile = open(path_sent, "a")
-        else:
-            textfile = open(path_notsent, "a")
-        textfile.write(string.strip())
-        textfile.write("\n")
-        textfile.close()
+                EC.element_to_be_clickable((By.XPATH, xpath))
+            )
 
     @property
     def message(self):
@@ -217,9 +182,8 @@ class Bot:
 
     @message.setter
     def message(self, txt_file):
-        f = open(txt_file, "r")
-        self._message = f.read()
-        f.close()
+        with open(txt_file, "r") as file:
+            self._message = file.read()
 
     @property
     def csv_numbers(self):
