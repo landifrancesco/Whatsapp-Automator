@@ -1,4 +1,5 @@
-colorama==0.4.6
-selenium==4.20.0
-webdriver-manager==4.0.1
-packaging==24.0
+colorama
+selenium
+undetected-chromedriver
+webdriver-manager
+packaging
