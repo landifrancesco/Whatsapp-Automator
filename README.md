@@ -29,6 +29,7 @@ pip install -r requirements.txt
 **Packages you need**:
 - `colorama`
 - `selenium`
+- `setuptools`
 - `undetected-chromedriver`
 - `webdriver-manager`
 
