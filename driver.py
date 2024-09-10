@@ -60,23 +60,34 @@ class Bot:
         """
         Logs in to WhatsApp Web by navigating to the login page.
         Waits indefinitely until the QR code is scanned and/or clickable element appears.
+        Prompts the user every few seconds to scan the QR code if not already logged in.
         """
         self.__prefix = prefix
-        try:
-            self.driver.get('https://web.whatsapp.com')
-        except Exception as e:
-            print(e)
-            print("Retrying login...")
-            self.driver.get('https://web.whatsapp.com')
+        logged_in = False  # Track login status
 
-        # Reusing the method to wait for the QR code scan
-        self.wait_for_element_to_be_clickable(
-            "//div[@class='x1n2onr6 x14yjl9h xudhj91 x18nykt9 xww2gxu']",
-            success_message="Logged in successfully!",
-            error_message="Please login to WhatsApp Web via QR Code."
-        )
+        while not logged_in:  # Loop only until login is successful
+            try:
+                self.driver.get('https://web.whatsapp.com')
+                print("Attempting to load WhatsApp Web...")
 
-        # Record the start time for logs
+                # Wait for the clickable element, success_message and error_message are shown only once
+                logged_in = self.wait_for_element_to_be_clickable(
+                    "//div[@class='x1n2onr6 x14yjl9h xudhj91 x18nykt9 xww2gxu']",
+                    success_message="Logged in successfully!",
+                    error_message="Waiting for QR code to be scanned..."
+                )
+
+                if logged_in:
+                    break  # Exit the loop on successful login
+
+            except Exception as e:
+                print(f"Error during login: {e}")
+                print("Retrying login...")
+
+            # Wait before retrying to prevent an infinite loop from flooding the system
+            time.sleep(5)
+
+        # Record the start time for logs once the login is successful
         self._start_time = time.strftime("%d-%m-%Y_%H%M%S", time.localtime())
         self.send_messages_to_all_contacts()
 
@@ -114,6 +125,47 @@ class Bot:
         if self.driver:
             self.driver.quit()
             print(Fore.YELLOW, "Driver closed successfully.", Style.RESET_ALL)
+
+    def send_message_to_contact(self, url, message):
+        """
+        Sends a message or media via WhatsApp Web by interacting with the webpage elements.
+        """
+        try:
+            self.driver.get(url)
+            sleep(random.uniform(5, 10))  # Random delay to simulate human behavior
+
+            # Default to message box unless media is present
+            message_box_selector = "div[aria-label='Type a message'][contenteditable='true']"
+
+            if self._options[1]:  # If media is to be included
+                self.paste_media()
+                sleep(random.uniform(2, 5))  # Delay to allow the media to paste
+                # Update the selectors to target the caption box
+                message_box_selector = "div[aria-label='Add a caption'][contenteditable='true']"
+
+            # Wait until the correct input box (message or caption) is clickable
+            message_box = WebDriverWait(self.driver, timeout).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, message_box_selector))
+            )
+
+            # Clear the text box before sending the message
+            message_box.clear()
+
+            # Paste the message into the appropriate box
+            self.type_message(message_box, message)
+
+            # Click the send button
+            self.click_button("span[data-icon='send']")
+
+            sleep(random.uniform(2, 5))  # Another random delay before moving to the next message
+            print(Fore.GREEN, "Message and media (if any) sent successfully.", Style.RESET_ALL)
+            return False  # No error
+
+        except Exception as e:
+            print(e)
+            print(Fore.RED, "Error sending message and media.", Style.RESET_ALL)
+            return True  # Error occurred
+
 
     def send_messages_to_all_contacts(self):
         """
@@ -156,25 +208,28 @@ class Bot:
         else:
             text_element.send_keys(message)
 
-    def wait_for_element_to_be_clickable(self, xpath, success_message=None, error_message=None):
+    def wait_for_element_to_be_clickable(self, xpath, success_message=None, error_message=None, timeout=timeout):
         """
-        Waits indefinitely for an element to be clickable.
+        Waits for an element to be clickable within the specified timeout period.
         :param xpath: The XPATH of the element to wait for.
         :param success_message: Message to display when the element becomes clickable.
         :param error_message: Message to display in case of timeout.
+        :param timeout: Time (in seconds) to wait for the element to become clickable.
+        :return: True if the element becomes clickable, False otherwise.
         """
         try:
+            # Wait for the element to become clickable
             WebDriverWait(self.driver, timeout).until(
                 EC.element_to_be_clickable((By.XPATH, xpath))
             )
             if success_message:
-                print(Fore.GREEN, success_message, Style.RESET_ALL)
+                print(Fore.GREEN + success_message + Style.RESET_ALL)
+            return True  # Element is clickable, return True
+
         except TimeoutException:
             if error_message:
-                print(Fore.RED, error_message, Style.RESET_ALL)
-            WebDriverWait(self.driver, timeout).until(
-                EC.element_to_be_clickable((By.XPATH, xpath))
-            )
+                print(Fore.RED + error_message + Style.RESET_ALL)
+            return False  # Timeout occurred, return False
 
     @property
     def message(self):
