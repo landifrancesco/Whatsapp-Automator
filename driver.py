@@ -18,7 +18,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 
 # Define a timeout for waiting for elements to load
-timeout = 30
+timeout = 120
 
 
 class Bot:
@@ -39,6 +39,10 @@ class Bot:
         self._options = [False, False]  # [include_names, include_media]
         self._start_time = None
         self.__prefix = None
+        # Selector may change in time
+        self.__main_selector = "//p[@dir='ltr']"
+        self.__fallback_selector = "//div[@class='x1hx0egp x6ikm8r x1odjw0f x1k6rcq7 x6prxxf']//p[@class='selectable-text copyable-text x15bjb6t x1n2onr6']"
+        self.__media_selector = "//div[@class='x1hx0egp x6ikm8r x1odjw0f x1k6rcq7 x1lkfr7t']//p[@class='selectable-text copyable-text x15bjb6t x1n2onr6']"
 
     def click_button(self, css_selector):
         """
@@ -64,10 +68,12 @@ class Bot:
         """
         self.__prefix = prefix
         logged_in = False  # Track login status
+        page_load = False  # Track page load status
 
         while not logged_in:  # Loop only until login is successful
             try:
-                self.driver.get('https://web.whatsapp.com')
+                if not page_load:
+                    self.driver.get('https://web.whatsapp.com')
                 print("Attempting to load WhatsApp Web...")
 
                 # Wait for the clickable element, success_message and error_message are shown only once
@@ -81,6 +87,7 @@ class Bot:
                     break  # Exit the loop on successful login
 
             except Exception as e:
+                page_load = True
                 print(f"Error during login: {e}")
                 print("Retrying login...")
 
@@ -101,15 +108,6 @@ class Bot:
         with open(log_path, "a") as logfile:
             logfile.write(number.strip() + "\n")
 
-    def paste_media(self):
-        """
-        Pastes selected media using CTRL+V.
-        """
-        message_box = WebDriverWait(self.driver, timeout).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, "div[aria-label='Type a message'][contenteditable='true']"))
-        )
-        message_box.send_keys(Keys.CONTROL, 'v')
-
     def prepare_message(self, name):
         """
         Prepares the message, including the recipient's name if specified.
@@ -126,44 +124,58 @@ class Bot:
             self.driver.quit()
             print(Fore.YELLOW, "Driver closed successfully.", Style.RESET_ALL)
 
+    def type_message(self, text_element, message):
+        """
+        Types the message into the appropriate text element.
+        Handles multiline messages.
+        """
+        multiline = "\n" in message
+        if multiline:
+            for line in message.split("\n"):
+                text_element.send_keys(line)
+                text_element.send_keys(Keys.LEFT_SHIFT + Keys.RETURN)
+        else:
+            text_element.send_keys(message)
+
     def send_message_to_contact(self, url, message):
         """
         Sends a message or media via WhatsApp Web by interacting with the webpage elements.
         """
         try:
             self.driver.get(url)
-            sleep(random.uniform(5, 10))  # Random delay to simulate human behavior
 
-            # Default to message box unless media is present
-            message_box_selector = "div[aria-label='Type a message'][contenteditable='true']"
+            # Try to click the main input box, if it fails, try the fallback
+            try:
+                message_box = WebDriverWait(self.driver, timeout).until(
+                    EC.element_to_be_clickable((By.XPATH, self.__main_selector))
+                )
 
-            if self._options[1]:  # If media is to be included
-                self.paste_media()
-                sleep(random.uniform(2, 5))  # Delay to allow the media to paste
-                # Update the selectors to target the caption box
-                message_box_selector = "div[aria-label='Add a caption'][contenteditable='true']"
+            except:
+                message_box = WebDriverWait(self.driver, timeout).until(
+                    EC.element_to_be_clickable((By.XPATH, self.__fallback_selector))
+                )
 
-            # Wait until the correct input box (message or caption) is clickable
-            message_box = WebDriverWait(self.driver, timeout).until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, message_box_selector))
-            )
+            # If media is included proceed differently
+            if self._options[1]:
+                message_box.send_keys(Keys.CONTROL, 'v')
+                sleep(random.uniform(2, 5))  # Allow time for media to paste
+                message_box = WebDriverWait(self.driver, timeout).until(
+                    EC.element_to_be_clickable((By.XPATH, self.__media_selector))
+                )
 
-            # Clear the text box before sending the message
-            message_box.clear()
-
-            # Paste the message into the appropriate box
+            # Type and send the message
             self.type_message(message_box, message)
 
             # Click the send button
             self.click_button("span[data-icon='send']")
 
-            sleep(random.uniform(2, 5))  # Another random delay before moving to the next message
-            print(Fore.GREEN, "Message and media (if any) sent successfully.", Style.RESET_ALL)
+            sleep(random.uniform(2, 5))  # Delay before moving on
+            print(Fore.GREEN + "Message and media (if any) sent successfully." + Style.RESET_ALL)
             return False  # No error
 
         except Exception as e:
             print(e)
-            print(Fore.RED, "Error sending message and media.", Style.RESET_ALL)
+            print(Fore.RED + "Error sending message and media." + Style.RESET_ALL)
             return True  # Error occurred
 
 
@@ -194,19 +206,6 @@ class Bot:
                     sleep(random.uniform(1, 10))
         finally:
             self.quit_driver()
-
-    def type_message(self, text_element, message):
-        """
-        Types the message into the appropriate text element.
-        Handles multiline messages.
-        """
-        multiline = "\n" in message
-        if multiline:
-            for line in message.split("\n"):
-                text_element.send_keys(line)
-                text_element.send_keys(Keys.LEFT_SHIFT + Keys.RETURN)
-        else:
-            text_element.send_keys(message)
 
     def wait_for_element_to_be_clickable(self, xpath, success_message=None, error_message=None, timeout=timeout):
         """
