@@ -51,18 +51,41 @@ class Bot:
         self._start_time = None
         self.__prefix = None
         # Selectors may change in time
-        self.__main_selector = "//p[@dir='ltr']"
-        self.__fallback_selector = "//div[@class='x1hx0egp x6ikm8r x1odjw0f x1k6rcq7 x6prxxf']//p[@class='selectable-text copyable-text x15bjb6t x1n2onr6']"
+        
+        # Login: an element to be visible after login
+        self.__login_selector = "//div[@class='x1c4vz4f xs83m0k xdl72j9 x1g77sc7 x78zum5 xozqiw3 x1oa3qoh x12fk4p8 xeuugli x2lwn1j x1nhvcw1 xdt5ytf x1cy8zhl xh8yej3 x5yr21d']"
+        
+        # Button: element to click to send the message
+        self.__button_selector = "//button[@aria-label='Send']"
+        
+        # Primary: text box, send message no media
+        self.__main_selector = (
+            "//div[contains(@class,'lexical-rich-text-input')]"
+            "//div[@role='textbox' and @contenteditable='true'"
+            " and @data-lexical-editor='true'"
+            " and @tabindex='10' and @data-tab='10'"
+            " and @aria-owns='emoji-suggestion'"
+            " and not(ancestor::*[@aria-hidden='true'])]"
+        )
+        
+        # Fallback: text box, send message no media (if the other one is not visible)
+        self.__fallback_selector = (
+            "//div[contains(@class,'lexical-rich-text-input')]"
+            "//div[@role='textbox' and @contenteditable='true'"
+            " and (@aria-label='Type a message' or @aria-placeholder='Type a message')"
+            " and not(ancestor::*[@aria-hidden='true'])]"
+        )
+        
+        # Media: text box, send message with media (after CTRL+V)
         self.__media_selector = "//div[@class='x1hx0egp x6ikm8r x1odjw0f x1k6rcq7 x1lkfr7t']//p[@class='selectable-text copyable-text x15bjb6t x1n2onr6']"
         
-    def click_button(self, css_selector):
+    def click_button(self, selector):
         """
         Clicks the send button (specified by its CSS selector).
         """
         button = WebDriverWait(self.driver, timeout).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, css_selector))
+            EC.element_to_be_clickable((By.XPATH, selector))
         )
-        sleep(1)
         button.click()
 
     def construct_whatsapp_url(self, number):
@@ -87,12 +110,14 @@ class Bot:
                     self.driver.get('https://web.whatsapp.com')
                 print("Attempting to load WhatsApp Web...")
 
-                # Wait for the clickable element, success_message and error_message are shown only once
-                logged_in = self.wait_for_element_to_be_clickable(
-                    "//div[@class='x1n2onr6 x14yjl9h xudhj91 x18nykt9 xww2gxu']",
-                    success_message="Logged in successfully!",
-                    error_message="Waiting for QR code to be scanned..."
-                )
+                try:
+                    WebDriverWait(self.driver, timeout).until(
+                        EC.visibility_of_element_located((By.XPATH, self.__login_selector))
+                    )
+                    print(Fore.GREEN + "Logged in successfully!" + Style.RESET_ALL)
+                    logged_in = True
+                except TimeoutException:
+                    print(Fore.RED + "Waiting for QR code to be scanned..." + Style.RESET_ALL)
 
                 if logged_in:
                     break  # Exit the loop on successful login
@@ -177,10 +202,18 @@ class Bot:
             # Type and send the message
             self.type_message(message_box, message)
 
-            # Click the send button
-            self.click_button("span[data-icon='send']")
+            # Random delay before sending
+            delay = random.uniform(2, 5)
+            print(f"Sending in {delay:.2f} seconds")
 
-            sleep(random.uniform(2, 5))  # Delay before moving on
+            try:
+                self.click_button(self.__button_selector)
+            except Exception:
+                message_box.click()
+                message_box.send_keys(Keys.ENTER)
+
+            sleep(delay)
+
             print(Fore.GREEN + "Message and media (if any) sent successfully." + Style.RESET_ALL)
             return False  # No error
 
