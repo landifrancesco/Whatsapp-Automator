@@ -79,6 +79,9 @@ class Bot:
         # Media: text box, send message with media (after CTRL+V)
         self.__media_selector = "//div[@class='x1hx0egp x6ikm8r x1odjw0f x1k6rcq7 x1lkfr7t']//p[@class='selectable-text copyable-text x15bjb6t x1n2onr6']"
         
+        # Media: button, if sending media this selector is used for the button click
+        self.__button_selector_media = "//div[@role='button' and @aria-label='Send']//span[@data-icon='wds-ic-send-filled']"
+        
     def click_button(self, selector):
         """
         Clicks the send button (specified by its CSS selector).
@@ -198,6 +201,7 @@ class Bot:
                 message_box = WebDriverWait(self.driver, timeout).until(
                     EC.element_to_be_clickable((By.XPATH, self.__media_selector))
                 )
+                self.__button_selector = self.__button_selector_media
 
             # Type and send the message
             self.type_message(message_box, message)
