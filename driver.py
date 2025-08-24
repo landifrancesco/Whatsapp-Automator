@@ -2,9 +2,9 @@ import csv
 import os.path
 import random
 import time
-from time import sleep
 
 from colorama import Fore, Style
+from pathlib import Path
 from selenium import webdriver
 from selenium.common import TimeoutException
 from selenium.webdriver import Keys
@@ -13,6 +13,7 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from time import sleep
 from undetected_chromedriver import Chrome
 from webdriver_manager.chrome import ChromeDriverManager
 
@@ -27,23 +28,33 @@ class Bot:
     """
 
     def __init__(self):
-        # Configure Chrome options
         options = Options()
-        # Use a specific Chrome user profile to save the session
-        options.add_argument("user-data-dir=./chrome-data")  # Path to where the user data will be stored
 
-        # Initialize the undetected Chrome driver
-        self.driver = Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
+        profile_dir = Path.cwd() / "chrome-profile" # profile location, same directory as script
+        profile_dir.mkdir(exist_ok=True)
+
+        options.add_argument(f"--user-data-dir={profile_dir}")
+        options.add_argument("--profile-directory=Default")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--no-sandbox")
+
+        self.driver = Chrome(
+            service=ChromeService(ChromeDriverManager().install()),
+            options=options,
+            headless=False,
+            use_subprocess=True
+        )
+
         self._message = None
         self._csv_numbers = None
-        self._options = [False, False]  # [include_names, include_media]
+        self._options = [False, False] # [include_names, include_media]
         self._start_time = None
         self.__prefix = None
-        # Selector may change in time
+        # Selectors may change in time
         self.__main_selector = "//p[@dir='ltr']"
         self.__fallback_selector = "//div[@class='x1hx0egp x6ikm8r x1odjw0f x1k6rcq7 x6prxxf']//p[@class='selectable-text copyable-text x15bjb6t x1n2onr6']"
         self.__media_selector = "//div[@class='x1hx0egp x6ikm8r x1odjw0f x1k6rcq7 x1lkfr7t']//p[@class='selectable-text copyable-text x15bjb6t x1n2onr6']"
-
+        
     def click_button(self, css_selector):
         """
         Clicks the send button (specified by its CSS selector).
